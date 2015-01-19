@@ -18,6 +18,10 @@ body {
 
 </style>
 <body>
+
+  <div id="div1"></div>
+
+  <div id="div2"></div>
 <script src="../d3/d3.js"></script>
 <script>
 
@@ -41,7 +45,7 @@ var yAxis = d3.svg.axis()
     .scale(y)
     .orient("left");
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select("#div2").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -54,8 +58,6 @@ d3.csv("data/data_1999.csv", function(error, data) {
     d.weight = +d.weight;
     d.bmi = +d.bmi;
   });
-
-  console.log(data);
 
   x.domain(d3.extent(data, function(d) { return d.height; })).nice();
   y.domain(d3.extent(data, function(d) { return d.weight; })).nice();
@@ -86,9 +88,11 @@ d3.csv("data/data_1999.csv", function(error, data) {
       .data(data)
     .enter().append("circle")
       .attr("class", "dot")
+      .attr("class", function(d) { return d.age_category;})
       .attr("r", 3.5)
       .attr("cx", function(d) { return x(d.height); })
       .attr("cy", function(d) { return y(d.weight); })
+      .attr("opacity", 0.3 )
       .style("fill", function(d) { return color(d.age_category); });
 
   var legend = svg.selectAll(".legend")
@@ -110,6 +114,21 @@ d3.csv("data/data_1999.csv", function(error, data) {
       .style("text-anchor", "end")
       .text(function(d) { return d; });
 
+  // Add select
+  var option1 = ['Age classification'];
+  var options = option1.concat(color.domain());
+  var select = d3.select("#div1").append("select")
+      .selectAll("option")
+      .data(options)
+    .enter().append("option")
+      .attr("value", function (d) { return d; })
+      .text(function (d) { return d; });
+
+
+  d3.select('select')
+      .on("change", function () {
+        // do something
+      });
 });
 
 </script>
