@@ -45,14 +45,33 @@
   </div>
 
   <div class='row'>
+    <div class='span12'>
+      <div class='row'>
+        <div class='span3' id='dc-gender-chart'>
+        <h4>Gender</h4>
+        </div>
+        <div class='span3' id='dc-ethnicity-chart'>
+        <h4>Ethnicity</h4>
+        </div>    
+        <div class='span3' id='dc-age-chart'>
+        <h4>Age</h4>
+        </div>
+        <div class='span3' id='dc-year-chart'>
+        <h4>Assessment Year</h4>
+        </div>    
+      </div>      
+    </div>
+  </div>
+
+  <div class='row'>
   <div class='pie-graph span12'>
       <table class='table table-hover' id='dc-table-graph'>
         <thead>
           <tr class='header'>
             <th>Gender</th>
             <th>Ethnicity</th>
-            <th>Age Category</th>
-            <th>Year Assessment</th>
+            <th>Age</th>
+            <th>Assessment Year</th>
             <th>Height</th>
             <th>Weight</th>
             <th>BMI</th>
@@ -89,6 +108,10 @@ d3.csv("data/data_1999.csv", function (data) {
 
   var dataTable = dc.dataTable("#dc-table-graph");
   var bmiBarChart = dc.barChart("#dc-bmi-bar-chart");
+  var genderChart = dc.rowChart("#dc-gender-chart");
+  var ethnicityChart = dc.rowChart("#dc-ethnicity-chart");
+  var ageChart = dc.rowChart("#dc-age-chart");
+  var yearChart = dc.rowChart("#dc-year-chart");
 
   var facts = crossfilter(data);  // Gets our 'facts' into crossfilter
 
@@ -102,6 +125,26 @@ d3.csv("data/data_1999.csv", function (data) {
     .reduceSum(function(d) { return d.bmi; });  // sums the measurements per BMI (rounded to 1 decimal)
   var bmiValueGroupCount = bmiValue.group()
     .reduceCount(function(d) { return d.bmi; }) // counts the number of the measurements by BMI
+
+  // for gender
+  var genderValue = facts.dimension(function (d) {return d.gender; }) 
+  var genderGroupCount = genderValue.group()
+    .reduceCount(function(d) {return d.gender; })
+
+  // for ethnicity
+  var ethnicityValue = facts.dimension(function (d) {return d.ethnicity; }) 
+  var ethnicityGroupCount = ethnicityValue.group()
+    .reduceCount(function(d) {return d.ethnicity; })
+
+  // for age
+  var ageValue = facts.dimension(function (d) {return d.age_category; }) 
+  var ageGroupCount = ageValue.group()
+    .reduceCount(function(d) {return d.age_category; })
+
+  // for Assessment Year
+  var yearValue = facts.dimension(function (d) {return d.year_assessment; }) 
+  var yearGroupCount = yearValue.group()
+    .reduceCount(function(d) {return d.year_assessment; })
 
   // Create dataTable dimension
   var genderDimension = facts.dimension(function (d) {
@@ -125,6 +168,43 @@ d3.csv("data/data_1999.csv", function (data) {
   .elasticY(true)
   .xAxis().tickFormat(function(v) {return v;}); 
 
+  // Gender Row Chart
+  genderChart.width(240)
+    .height(220)
+    .margins({top: 5, left: 10, right: 10, bottom: 20})
+    .dimension(genderValue)
+    .group(genderGroupCount)
+    .colors(['#79AACD', '#FD9CA7'])
+    // .elasticX(true)
+    .xAxis().ticks(4);
+
+  // Ethnicity Row Chart
+  ethnicityChart.width(240)
+    .height(220)
+    .margins({top: 5, left: 10, right: 10, bottom: 20})
+    .dimension(ethnicityValue)
+    .group(ethnicityGroupCount)
+    // .elasticX(true)
+    .xAxis().ticks(4);
+
+  // Age Row Chart
+  ageChart.width(240)
+    .height(220)
+    .margins({top: 5, left: 10, right: 10, bottom: 20})
+    .dimension(ageValue)
+    .group(ageGroupCount)
+    // .elasticX(true)
+    .xAxis().ticks(4);
+
+  // As Assessment Year Chart
+  yearChart.width(240)
+    .height(220)
+    .margins({top: 5, left: 10, right: 10, bottom: 20})
+    .dimension(yearValue)
+    .group(yearGroupCount)
+    // .elasticX(true)
+    .xAxis().ticks(4);
+
   // Table with the data
   dataTable.width(960).height(800)
     .dimension(genderDimension)
@@ -133,7 +213,7 @@ d3.csv("data/data_1999.csv", function (data) {
   .size(10)             // number of rows to return
     .columns([
       function(d) { return d.gender; },
-      function(d) { return d.ethnicity; },
+      function(d) { return d.age; },
       function(d) { return d.age_category; },
       function(d) { return d.year_assessment; },
       function(d) { return d.height; },
