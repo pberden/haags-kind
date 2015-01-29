@@ -4,16 +4,16 @@
   <meta charset='utf-8'>
   <meta content='width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
 
-  <title>dc.js Experiment</title>
+  <title>Haags kind</title>
 
-  <script src='d3.js' type='text/javascript'></script>
-  <script src='crossfilter.js' type='text/javascript'></script>
-  <script src='dc.js' type='text/javascript'></script>
-  <script src='jquery-1.9.1.min.js' type='text/javascript'></script>
-  <script src='bootstrap.min.js' type='text/javascript'></script>
+  <script src='../d3/d3.js' type='text/javascript'></script>
+  <script src='assets/js/crossfilter.js' type='text/javascript'></script>
+  <script src='assets/js/dc.js' type='text/javascript'></script>
+  <script src='assets/js/jquery-1.9.1.min.js' type='text/javascript'></script>
+  <script src='assets/js/bootstrap.min.js' type='text/javascript'></script>
 
-  <link href='bootstrap.min.css' rel='stylesheet' type='text/css'>
-  <link href='dc.css' rel='stylesheet' type='text/css'>
+  <link href='assets/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
+  <link href='assets/css/dc.css' rel='stylesheet' type='text/css'>
 
   <style type="text/css"></style>
 </head>
@@ -26,21 +26,21 @@
 
   <div class='row'>
     <div class='span12'>
-      <h3>New Zealand Earthquakes</h3>
+      <h3>Weight and Length Haagse children</h3>
       <div class='row'>
-        <div class='pie-graph span6' id='dc-magnitude-chart'>
-        <h4>Events by Magnitude</h4>
+        <div class='pie-graph span6' id='dc-bubble-chart'>
+        <h4>Height and weight</h4>
         </div>
-        <div class='pie-graph span6' id='dc-depth-chart'>
-        <h4>Events by Depth (km)</h4>
+        <div class='pie-graph span6' id='dc-choropleth'>
+        <h4>Map of The Hague</h4>
         </div>    
       </div>
     </div>
   </div>
 
   <div class='row'>
-    <div class='span12' id='dc-time-chart'>
-      <h4>Events per hour</h4>
+    <div class='span12' id='dc-bmi-bar-chart'>
+      <h4>Children by BMI</h4>
     </div>
   </div>
 
@@ -49,13 +49,13 @@
       <table class='table table-hover' id='dc-table-graph'>
         <thead>
           <tr class='header'>
-            <th>DTG</th>
-            <th>Lat</th>
-            <th>Long</th>
-            <th>Depth</th>
-            <th>Magnitude</th>
-            <th>Google Map</th>
-            <th>OSM Map</th>
+            <th>Gender</th>
+            <th>Ethnicity</th>
+            <th>Age Category</th>
+            <th>Year Assessment</th>
+            <th>Height</th>
+            <th>Weight</th>
+            <th>BMI</th>
           </tr>
         </thead>
       </table>
@@ -68,138 +68,79 @@
   <a href="http://d3js.org/">d3.js</a> and 
   <a href="http://twitter.github.io/bootstrap/">bootstrap</a>.
 </H5>
-<p>Earthquake data via <a href="http://geonet.org.nz">Geonet</a>.</p>
+<p>Data via <a href="https://beta.columby.com/explore/dataset/349">Columby</a>.</p>
 
 </div>
 </div>
 </div>
   
 <script>
-  
-/**********************************
-* Step0: Load data from json file *
-**********************************/
 
 // load data from a csv file
-d3.csv("quakes.csv", function (data) {
-
-  // format our data
-  var dtgFormat = d3.time.format("%Y-%m-%dT%H:%M:%S");
+d3.csv("data/data_1999.csv", function (data) {
   
-  data.forEach(function(d) { 
-    d.dtg   = dtgFormat.parse(d.origintime.substr(0,19)); 
-    d.lat   = +d.latitude;
-    d.long  = +d.longitude;
-    d.mag   = d3.round(+d.magnitude,1);
-    d.depth = d3.round(+d.depth,0);
+  data.forEach(function(d) {
+    d.height = +d.height;
+    d.weight = +d.weight;
+    d.bmi = d3.round(d.weight/((d.height*d.height)/10000),1);
   });
 
-/******************************************************
-* Step1: Create the dc.js chart objects & ling to div *
-******************************************************/
+  console.log(d3.extent(data, function(d) { return d.bmi; }))
 
-  var magnitudeChart = dc.barChart("#dc-magnitude-chart");
-  var depthChart = dc.barChart("#dc-depth-chart");
-  var timeChart = dc.lineChart("#dc-time-chart");
   var dataTable = dc.dataTable("#dc-table-graph");
-
-/****************************************
-*   Run the data through crossfilter    *
-****************************************/
+  var bmiBarChart = dc.barChart("#dc-bmi-bar-chart");
 
   var facts = crossfilter(data);  // Gets our 'facts' into crossfilter
 
-/******************************************************
-* Create the Dimensions                               *
-* A dimension is something to group or filter by.     *
-* Crossfilter can filter by exact value, or by range. *
-******************************************************/
+  /******************************************************
+  * Create the Dimensions                               *
+  ******************************************************/
 
-  // for Magnitude
-  var magValue = facts.dimension(function (d) {
-    return d.mag;       // group or filter by magnitude
+  // for BMI
+  var bmiValue = facts.dimension(function (d) {return d.bmi;}); // group or filter by BMI
+  var bmiValueGroupSum = bmiValue.group()
+    .reduceSum(function(d) { return d.bmi; });  // sums the measurements per BMI (rounded to 1 decimal)
+  var bmiValueGroupCount = bmiValue.group()
+    .reduceCount(function(d) { return d.bmi; }) // counts the number of the measurements by BMI
+
+  // Create dataTable dimension
+  var genderDimension = facts.dimension(function (d) {
+    return d.gender;
   });
-  var magValueGroupSum = magValue.group()
-    .reduceSum(function(d) { return d.mag; });  // sums the magnitudes per magnitude
-  var magValueGroupCount = magValue.group()
-    .reduceCount(function(d) { return d.mag; }) // counts the number of the facts by magnitude
 
-  // For datatable
-  var timeDimension = facts.dimension(function (d) {
-    return d.dtg;
-  }); // group or filter by time
+  /***************************************
+  *   Create the Visualisations   *
+  ***************************************/
 
-  // for Depth
-  var depthValue = facts.dimension(function (d) {
-    return d.depth;
-  });
-  var depthValueGroup = depthValue.group();
-  
-  // define a daily volume Dimension
-  var volumeByDay = facts.dimension(function(d) {
-    return d3.time.hour(d.dtg);
-  });
-  // map/reduce to group sum
-  var volumeByDayGroup = volumeByDay.group()
-    .reduceCount(function(d) { return d.dtg; });
-
-/***************************************
-*   Step4: Create the Visualisations   *
-***************************************/
-  
-  // Magnitide Bar Graph Summed
-  magnitudeChart.width(480)
+  // BMI Bar Chart Summed
+  bmiBarChart.width(960)
     .height(150)
     .margins({top: 10, right: 10, bottom: 20, left: 40})
-    .dimension(magValue)                // the values across the x axis
-    .group(magValueGroupSum)              // the values on the y axis
+    .dimension(bmiValue) // the values across the x axis
+    .group(bmiValueGroupSum) // the values on the y axis
   .transitionDuration(500)
     .centerBar(true)  
-  .gap(56)                                            // bar width Keep increasing to get right then back off.
-    .x(d3.scale.linear().domain([0.5, 7.5]))
+  .gap(21) // bar width Keep increasing to get right then back off.
+    .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.bmi; })))
   .elasticY(true)
   .xAxis().tickFormat(function(v) {return v;}); 
 
-  // Depth bar graph
-  depthChart.width(480)
-    .height(150)
-    .margins({top: 10, right: 10, bottom: 20, left: 40})
-    .dimension(depthValue)
-    .group(depthValueGroup)
-  .transitionDuration(500)
-    .centerBar(true)  
-  .gap(1)                    // bar width Keep increasing to get right then back off.
-    .x(d3.scale.linear().domain([0, 100]))
-  .elasticY(true)
-  .xAxis().tickFormat(function(v) {return v;});
-
-  // time graph
-  timeChart.width(960)
-    .height(100)
-    .margins({top: 10, right: 10, bottom: 20, left: 40})
-    .dimension(volumeByDay)
-    .group(volumeByDayGroup)
-    .transitionDuration(500)
-  .elasticY(true)
-    .x(d3.time.scale().domain([new Date(2013, 6, 18), new Date(2013, 6, 24)])) // scale and domain of the graph
-    .xAxis();
-
-  // Table of earthquake data
+  // Table with the data
   dataTable.width(960).height(800)
-    .dimension(timeDimension)
-  .group(function(d) { return "List of all earthquakes corresponding to the filters"
+    .dimension(genderDimension)
+  .group(function(d) { return "List of all data corresponding to the filters"
    })
   .size(10)             // number of rows to return
     .columns([
-      function(d) { return d.dtg; },
-      function(d) { return d.lat; },
-      function(d) { return d.long; },
-      function(d) { return d.depth; },
-      function(d) { return d.mag; },
-    function(d) { return '<a href=\"http://maps.google.com/maps?z=11&t=m&q=loc:' + d.lat + '+' + d.long +"\" target=\"_blank\">Google Map</a>"},
-    function(d) { return '<a href=\"http://www.openstreetmap.org/?mlat=' + d.lat + '&mlon=' + d.long +'&zoom=11'+ "\" target=\"_blank\"> OSM Map</a>"}
+      function(d) { return d.gender; },
+      function(d) { return d.ethnicity; },
+      function(d) { return d.age_category; },
+      function(d) { return d.year_assessment; },
+      function(d) { return d.height; },
+      function(d) { return d.weight; },
+      function(d) { return d.bmi; }
     ])
-    .sortBy(function(d){ return d.dtg; })
+    .sortBy(function(d){ return d.gender; })
     .order(d3.ascending);
 
 /****************************

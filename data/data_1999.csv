@@ -1,4 +1,4 @@
-sex,ethnicity,age_category,year_assessment,height,weight,bmi
+gender,ethnicity,age_category,year_assessment,height,weight,bmi
 Girl,Turkish,13-16 years,1999,157,48,19.473407
 Girl,Turkish,13-16 years,1999,158,50,20.028842
 Girl,Maroccan,13-16 years,1999,163,57,21.453574
