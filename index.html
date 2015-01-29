@@ -71,10 +71,11 @@
             <th>Gender</th>
             <th>Ethnicity</th>
             <th>Age</th>
-            <th>Assessment Year</th>
             <th>Height</th>
             <th>Weight</th>
             <th>BMI</th>
+            <th>CBS district</th>
+            <th>Assessment Year</th>
           </tr>
         </thead>
       </table>
@@ -96,9 +97,11 @@
 <script>
 
 // load data from a csv file
-d3.csv("data/data_1999.csv", function (data) {
+d3.csv("data/data.csv", function (data) {
   
   data.forEach(function(d) {
+    d.age = +d.age;
+    d.year_assessment = +d.year_assessment;
     d.height = +d.height;
     d.weight = +d.weight;
     d.bmi = d3.round(d.weight/((d.height*d.height)/10000),1);
@@ -137,9 +140,9 @@ d3.csv("data/data_1999.csv", function (data) {
     .reduceCount(function(d) {return d.ethnicity; })
 
   // for age
-  var ageValue = facts.dimension(function (d) {return d.age_category; }) 
+  var ageValue = facts.dimension(function (d) {return d.age; }) 
   var ageGroupCount = ageValue.group()
-    .reduceCount(function(d) {return d.age_category; })
+    .reduceCount(function(d) {return d.age; })
 
   // for Assessment Year
   var yearValue = facts.dimension(function (d) {return d.year_assessment; }) 
@@ -168,10 +171,12 @@ d3.csv("data/data_1999.csv", function (data) {
   .elasticY(true)
   .xAxis().tickFormat(function(v) {return v;}); 
 
+  var rowMargins = {top: 5, left: 20, right: 20, bottom: 40}
+
   // Gender Row Chart
   genderChart.width(240)
     .height(220)
-    .margins({top: 5, left: 10, right: 10, bottom: 20})
+    .margins(rowMargins)
     .dimension(genderValue)
     .group(genderGroupCount)
     .colors(['#79AACD', '#FD9CA7'])
@@ -181,7 +186,7 @@ d3.csv("data/data_1999.csv", function (data) {
   // Ethnicity Row Chart
   ethnicityChart.width(240)
     .height(220)
-    .margins({top: 5, left: 10, right: 10, bottom: 20})
+    .margins(rowMargins)
     .dimension(ethnicityValue)
     .group(ethnicityGroupCount)
     // .elasticX(true)
@@ -190,7 +195,7 @@ d3.csv("data/data_1999.csv", function (data) {
   // Age Row Chart
   ageChart.width(240)
     .height(220)
-    .margins({top: 5, left: 10, right: 10, bottom: 20})
+    .margins(rowMargins)
     .dimension(ageValue)
     .group(ageGroupCount)
     // .elasticX(true)
@@ -199,7 +204,7 @@ d3.csv("data/data_1999.csv", function (data) {
   // As Assessment Year Chart
   yearChart.width(240)
     .height(220)
-    .margins({top: 5, left: 10, right: 10, bottom: 20})
+    .margins(rowMargins)
     .dimension(yearValue)
     .group(yearGroupCount)
     // .elasticX(true)
@@ -213,12 +218,13 @@ d3.csv("data/data_1999.csv", function (data) {
   .size(10)             // number of rows to return
     .columns([
       function(d) { return d.gender; },
+      function(d) { return d.ethnicity; },
       function(d) { return d.age; },
-      function(d) { return d.age_category; },
-      function(d) { return d.year_assessment; },
       function(d) { return d.height; },
       function(d) { return d.weight; },
-      function(d) { return d.bmi; }
+      function(d) { return d.bmi; },
+      function(d) { return d.cbs_wijkcode; },      
+      function(d) { return d.year_assessment; }
     ])
     .sortBy(function(d){ return d.gender; })
     .order(d3.ascending);
