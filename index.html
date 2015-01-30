@@ -31,7 +31,7 @@
         <div class='pie-graph span6' id='dc-bubble-chart'>
         <h4>Height and weight</h4>
         </div>
-        <div class='pie-graph span6' id='dc-choropleth'>
+        <div class='pie-graph span6' id='dc-geo-chart'>
         <h4>Map of The Hague</h4>
         </div>    
       </div>
@@ -107,20 +107,24 @@ d3.csv("data/data.csv", function (data) {
     d.bmi = d3.round(d.weight/((d.height*d.height)/10000),1);
   });
 
-  console.log(d3.extent(data, function(d) { return d.bmi; }))
-
-  var dataTable = dc.dataTable("#dc-table-graph");
+  var geoChart = dc.geoChoroplethChart("#dc-geo-chart");
   var bmiBarChart = dc.barChart("#dc-bmi-bar-chart");
   var genderChart = dc.rowChart("#dc-gender-chart");
   var ethnicityChart = dc.rowChart("#dc-ethnicity-chart");
-  var ageChart = dc.rowChart("#dc-age-chart");
-  var yearChart = dc.rowChart("#dc-year-chart");
+  var ageChart = dc.barChart("#dc-age-chart");
+  var yearChart = dc.barChart("#dc-year-chart");
+  var dataTable = dc.dataTable("#dc-table-graph");
 
   var facts = crossfilter(data);  // Gets our 'facts' into crossfilter
 
   /******************************************************
   * Create the Dimensions                               *
   ******************************************************/
+
+  // for Choropleth
+  var districtValue = facts.dimension(function (d) {return d.cbs_wijkcode; });
+  var districtValueGroupCount = districtValue.group()
+    .reduceCount(function(d) { return d.cbs_wijkcode; }); 
 
   // for BMI
   var bmiValue = facts.dimension(function (d) {return d.bmi;}); // group or filter by BMI
@@ -141,8 +145,10 @@ d3.csv("data/data.csv", function (data) {
 
   // for age
   var ageValue = facts.dimension(function (d) {return d.age; }) 
+  var ageGroupSum = ageValue.group()
+    .reduceSum(function(d) {return d.bmi; })
   var ageGroupCount = ageValue.group()
-    .reduceCount(function(d) {return d.age; })
+    .reduceCount(function(d) {return d.bmi })
 
   // for Assessment Year
   var yearValue = facts.dimension(function (d) {return d.year_assessment; }) 
@@ -158,82 +164,115 @@ d3.csv("data/data.csv", function (data) {
   *   Create the Visualisations   *
   ***************************************/
 
-  // BMI Bar Chart Summed
-  bmiBarChart.width(960)
-    .height(150)
-    .margins({top: 10, right: 10, bottom: 20, left: 40})
-    .dimension(bmiValue) // the values across the x axis
-    .group(bmiValueGroupSum) // the values on the y axis
-  .transitionDuration(500)
-    .centerBar(true)  
-  .gap(21) // bar width Keep increasing to get right then back off.
-    .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.bmi; })))
-  .elasticY(true)
-  .xAxis().tickFormat(function(v) {return v;}); 
+  d3.json("geo/denhaag.json", function (districts) {
+      geoChart.width(480)
+        .height(400)
+        .dimension(districtValue)
+        .group(districtValueGroupCount)
+        .projection(d3.geo.mercator()
+                    .scale(103864)
+                    .translate([ -7570, 111130 ])
+                    )
+        .colors(d3.scale
+                  .quantize()
+                  .range(["#E2F2FF", "#C4E4FF", "#9ED2FF", "#81C5FF", "#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"])
+                )
+        .colorDomain([0, 20000])
+        .colorCalculator(function (d) { return d ? geoChart.colors()(d) : '#ccc'; })
+        .overlayGeoJson(districts.features, "district", function (d) {
+            return d.properties.WK_CODE;
+        })
+        .title(function (d) {
+            return "District: " + d.key;
+        });
 
-  var rowMargins = {top: 5, left: 20, right: 20, bottom: 40}
+      // BMI Bar Chart Summed
+      bmiBarChart.width(960)
+        .height(150)
+        .margins({top: 10, right: 10, bottom: 20, left: 40})
+        .dimension(bmiValue) // the values across the x axis
+        .group(bmiValueGroupCount) // the values on the y axis
+      .transitionDuration(500)
+        .centerBar(true)  
+      .gap(21) // bar width Keep increasing to get right then back off.
+        .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.bmi; })))
+      .elasticY(true)
+      .xAxis().tickFormat(function(v) {return v;}); 
 
-  // Gender Row Chart
-  genderChart.width(240)
-    .height(220)
-    .margins(rowMargins)
-    .dimension(genderValue)
-    .group(genderGroupCount)
-    .colors(['#79AACD', '#FD9CA7'])
-    // .elasticX(true)
-    .xAxis().ticks(4);
+      var rowMargins = {top: 5, left: 30, right: 20, bottom: 40}
 
-  // Ethnicity Row Chart
-  ethnicityChart.width(240)
-    .height(220)
-    .margins(rowMargins)
-    .dimension(ethnicityValue)
-    .group(ethnicityGroupCount)
-    // .elasticX(true)
-    .xAxis().ticks(4);
+      // Gender Row Chart
+      genderChart.width(240)
+        .height(220)
+        .margins(rowMargins)
+        .dimension(genderValue)
+        .group(genderGroupCount)
+        .colors(['#79AACD', '#FD9CA7'])
+        // .elasticX(true)
+        .xAxis().ticks(4);
 
-  // Age Row Chart
-  ageChart.width(240)
-    .height(220)
-    .margins(rowMargins)
-    .dimension(ageValue)
-    .group(ageGroupCount)
-    // .elasticX(true)
-    .xAxis().ticks(4);
+      // Ethnicity Row Chart
+      ethnicityChart.width(240)
+        .height(220)
+        .margins(rowMargins)
+        .dimension(ethnicityValue)
+        .group(ethnicityGroupCount)
+        // .elasticX(true)
+        .xAxis().ticks(4);
 
-  // As Assessment Year Chart
-  yearChart.width(240)
-    .height(220)
-    .margins(rowMargins)
-    .dimension(yearValue)
-    .group(yearGroupCount)
-    // .elasticX(true)
-    .xAxis().ticks(4);
+      // Age Bar Chart
+      ageChart.width(240)
+        .height(220)
+        .margins(rowMargins)
+        .dimension(ageValue)
+        .group(ageGroupSum)
+        .centerBar(true)
+        .gap(5)
+        .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.age; })))
+        .elasticY(true)
+        .xAxis().tickFormat(function(v) {return v;}); 
 
-  // Table with the data
-  dataTable.width(960).height(800)
-    .dimension(genderDimension)
-  .group(function(d) { return "List of all data corresponding to the filters"
-   })
-  .size(10)             // number of rows to return
-    .columns([
-      function(d) { return d.gender; },
-      function(d) { return d.ethnicity; },
-      function(d) { return d.age; },
-      function(d) { return d.height; },
-      function(d) { return d.weight; },
-      function(d) { return d.bmi; },
-      function(d) { return d.cbs_wijkcode; },      
-      function(d) { return d.year_assessment; }
-    ])
-    .sortBy(function(d){ return d.gender; })
-    .order(d3.ascending);
 
-/****************************
-* Step6: Render the Charts  *
-****************************/
-      
-  dc.renderAll();
+      // Assessment Year Bar Chart
+      yearChart.width(240)
+        .height(220)
+        .margins(rowMargins)
+        .dimension(yearValue)
+        .group(yearGroupCount)
+        .centerBar(true)  
+        .gap(10)
+        .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.year_assessment; })))
+        .elasticY(true)
+        .xAxis().tickFormat(function(v) {return v;}); 
+
+      // Table with the data
+      dataTable.width(960).height(800)
+        .dimension(genderDimension)
+      .group(function(d) { return "List of all data corresponding to the filters"
+       })
+      .size(10)             // number of rows to return
+        .columns([
+          function(d) { return d.gender; },
+          function(d) { return d.ethnicity; },
+          function(d) { return d.age; },
+          function(d) { return d.height; },
+          function(d) { return d.weight; },
+          function(d) { return d.bmi; },
+          function(d) { return d.cbs_wijkcode; },      
+          function(d) { return d.year_assessment; }
+        ])
+        .sortBy(function(d){ return d.gender; })
+        .order(d3.ascending);
+
+    /****************************
+    * Step6: Render the Charts  *
+    ****************************/
+          
+      dc.renderAll();
+
+
+      });
+
   
 });
   
