@@ -180,7 +180,7 @@ d3.csv("data/data.csv", function (data) {
         .colorDomain([0, 20000])
         .colorCalculator(function (d) { return d ? geoChart.colors()(d) : '#ccc'; })
         .overlayGeoJson(districts.features, "district", function (d) {
-            return d.properties.WK_CODE;
+            return d.properties.WK_CODE.substr(3,6);
         })
         .title(function (d) {
             return "District: " + d.key;
@@ -208,7 +208,7 @@ d3.csv("data/data.csv", function (data) {
         .dimension(genderValue)
         .group(genderGroupCount)
         .colors(['#79AACD', '#FD9CA7'])
-        // .elasticX(true)
+        .elasticX(true)
         .xAxis().ticks(4);
 
       // Ethnicity Row Chart
@@ -217,7 +217,7 @@ d3.csv("data/data.csv", function (data) {
         .margins(rowMargins)
         .dimension(ethnicityValue)
         .group(ethnicityGroupCount)
-        // .elasticX(true)
+        .elasticX(true)
         .xAxis().ticks(4);
 
       // Age Bar Chart
