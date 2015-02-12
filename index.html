@@ -107,6 +107,27 @@ d3.csv("data/data.csv", function (data) {
     d.bmi = d3.round(d.weight/((d.height*d.height)/10000),1);
   });
 
+  //Custom reduce functions for calculating average values
+  function reduceAddAvg(attr) {
+    return function(p,v) {
+      ++p.count
+      p.sum += v[attr];
+      p.avg = d3.round((p.sum / p.count), 2);
+      return p;
+    };
+  }
+  function reduceRemoveAvg(attr) {
+    return function(p,v) {
+      --p.count
+      p.sum -= v[attr];
+      p.avg = d3.round((p.sum / p.count), 2);
+      return p;
+    };
+  }
+  function reduceInitAvg() {
+    return {count:0, sum:0, avg:0};
+  }
+
   var geoChart = dc.geoChoroplethChart("#dc-geo-chart");
   var bmiBarChart = dc.barChart("#dc-bmi-bar-chart");
   var genderChart = dc.rowChart("#dc-gender-chart");
@@ -123,8 +144,14 @@ d3.csv("data/data.csv", function (data) {
 
   // for Choropleth
   var districtValue = facts.dimension(function (d) {return d.cbs_wijkcode; });
-  var districtValueGroupCount = districtValue.group()
-    .reduceCount(function(d) { return d.cbs_wijkcode; }); 
+  // var districtValueGroupCount = districtValue.group()
+  //   .reduceCount(function(d) { return d.cbs_wijkcode; }); 
+  var districtGroupAvg = districtValue.group()
+    .reduce(reduceAddAvg('bmi'), reduceRemoveAvg('bmi'), reduceInitAvg);
+
+  // example from https://github.com/square/crossfilter/issues/102#issuecomment-31570749
+  // var statesAvgGroup = statesAvgDimension.group().reduce(reduceAddAvg('savings'), reduceRemoveAvg('savings'), reduceInitAvg);
+
 
   // for BMI
   var bmiValue = facts.dimension(function (d) {return d.bmi;}); // group or filter by BMI
@@ -135,16 +162,20 @@ d3.csv("data/data.csv", function (data) {
 
   // for gender
   var genderValue = facts.dimension(function (d) {return d.gender; }) 
-  var genderGroupCount = genderValue.group()
-    .reduceCount(function(d) {return d.gender; })
+  var genderGroupAvg = genderValue.group()
+    .reduce(reduceAddAvg('bmi'), reduceRemoveAvg('bmi'), reduceInitAvg);
 
   // for ethnicity
   var ethnicityValue = facts.dimension(function (d) {return d.ethnicity; }) 
+  var ethnicityGroupAvg = ethnicityValue.group()
+    .reduce(reduceAddAvg('bmi'), reduceRemoveAvg('bmi'), reduceInitAvg);
   var ethnicityGroupCount = ethnicityValue.group()
     .reduceCount(function(d) {return d.ethnicity; })
 
   // for age
   var ageValue = facts.dimension(function (d) {return d.age; }) 
+  var ageGroupAvg = ageValue.group()
+    .reduce(reduceAddAvg('bmi'), reduceRemoveAvg('bmi'), reduceInitAvg);
   var ageGroupSum = ageValue.group()
     .reduceSum(function(d) {return d.bmi; })
   var ageGroupCount = ageValue.group()
@@ -152,6 +183,8 @@ d3.csv("data/data.csv", function (data) {
 
   // for Assessment Year
   var yearValue = facts.dimension(function (d) {return d.year_assessment; }) 
+  var yearGroupAvg = yearValue.group()
+    .reduce(reduceAddAvg('bmi'), reduceRemoveAvg('bmi'), reduceInitAvg);
   var yearGroupCount = yearValue.group()
     .reduceCount(function(d) {return d.year_assessment; })
 
@@ -168,7 +201,9 @@ d3.csv("data/data.csv", function (data) {
       geoChart.width(480)
         .height(400)
         .dimension(districtValue)
-        .group(districtValueGroupCount)
+        // .group(districtValueGroupCount)
+        .group(districtGroupAvg)
+        .valueAccessor(function (p) { return p.value.avg; })
         .projection(d3.geo.mercator()
                     .scale(103864)
                     .translate([ -7570, 111130 ])
@@ -177,7 +212,7 @@ d3.csv("data/data.csv", function (data) {
                   .quantize()
                   .range(["#E2F2FF", "#C4E4FF", "#9ED2FF", "#81C5FF", "#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"])
                 )
-        .colorDomain([0, 20000])
+        .colorDomain([0, 50])
         .colorCalculator(function (d) { return d ? geoChart.colors()(d) : '#ccc'; })
         .overlayGeoJson(districts.features, "district", function (d) {
             return d.properties.WK_CODE.substr(3,6);
@@ -206,8 +241,9 @@ d3.csv("data/data.csv", function (data) {
         .height(220)
         .margins(rowMargins)
         .dimension(genderValue)
-        .group(genderGroupCount)
-        .colors(['#79AACD', '#FD9CA7'])
+        .group(genderGroupAvg)
+        .valueAccessor(function (p) { return p.value.avg; })
+        // .colors(['#79AACD', '#FD9CA7'])
         .elasticX(true)
         .xAxis().ticks(4);
 
@@ -216,7 +252,8 @@ d3.csv("data/data.csv", function (data) {
         .height(220)
         .margins(rowMargins)
         .dimension(ethnicityValue)
-        .group(ethnicityGroupCount)
+        .group(ethnicityGroupAvg)
+        .valueAccessor(function (p) { return p.value.avg; })
         .elasticX(true)
         .xAxis().ticks(4);
 
@@ -225,7 +262,8 @@ d3.csv("data/data.csv", function (data) {
         .height(220)
         .margins(rowMargins)
         .dimension(ageValue)
-        .group(ageGroupSum)
+        .group(ageGroupAvg)
+        .valueAccessor(function (p) { return p.value.avg; })
         .centerBar(true)
         .gap(5)
         .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.age; })))
@@ -238,7 +276,8 @@ d3.csv("data/data.csv", function (data) {
         .height(220)
         .margins(rowMargins)
         .dimension(yearValue)
-        .group(yearGroupCount)
+        .group(yearGroupAvg)
+        .valueAccessor(function (p) { return p.value.avg; })
         .centerBar(true)  
         .gap(10)
         .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.year_assessment; })))
