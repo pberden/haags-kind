@@ -29,18 +29,15 @@
       <h3>Weight and Length Haagse children</h3>
       <div class='row'>
         <div class='pie-graph span6' id='dc-bubble-chart'>
-        <h4>Height and weight</h4>
+        <h4>Explanation</h4>
         </div>
         <div class='pie-graph span6' id='dc-geo-chart'>
         <h4>Map of The Hague</h4>
-        </div>    
+        </div>
+        <div class='span12' id='dc-bmi-bar-chart'>
+          <h4>Children by BMI</h4>
+        </div>
       </div>
-    </div>
-  </div>
-
-  <div class='row'>
-    <div class='span12' id='dc-bmi-bar-chart'>
-      <h4>Children by BMI</h4>
     </div>
   </div>
 
@@ -212,13 +209,18 @@ d3.csv("data/data.csv", function (data) {
                   .quantize()
                   .range(["#E2F2FF", "#C4E4FF", "#9ED2FF", "#81C5FF", "#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"])
                 )
-        .colorDomain([0, 50])
+        .colorDomain([5, 20])
         .colorCalculator(function (d) { return d ? geoChart.colors()(d) : '#ccc'; })
         .overlayGeoJson(districts.features, "district", function (d) {
             return d.properties.WK_CODE.substr(3,6);
         })
-        .title(function (d) {
-            return "District: " + d.key;
+        // .title(function (d) {
+        //     return "District: " + d.key;
+        .title(function (p) {
+          return [
+              p.key,
+              'Average BMI: ' + p.value
+          ].join('\n');
         });
 
       // BMI Bar Chart Summed
