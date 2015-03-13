@@ -7,3 +7,22 @@
 #dc-geo-chart {
 	z-index: 10;
 }
+.control {
+	float: right;
+}
+h2 {
+	float: right;
+}
+h2 span {
+	font-size:14px;
+	font-weight:normal;
+}
+#loading {
+	position: absolute;
+	width: 220px;
+	height: 19px;
+	top: 50%;
+	left: 50%;
+	margin: -10px 0 0 -110px;
+	z-index: 20001;
+}

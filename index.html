@@ -20,6 +20,13 @@
 </head>
 
 <body>
+<div id="loading">
+  <div class="loading-indicator">
+    <div class="progress progress-striped active">
+      <div class="progress-bar progress-bar-info" style="width: 100%"></div>
+    </div>
+  </div>
+</div>
 
 <div class='container' id='main-container'>
 <div class='content'>
@@ -27,7 +34,25 @@
 
   <div class='row'>
     <div class='span12'>
-      <h3>Weight and Length Haagse children</h3>
+      <div class="dc-data-count" style="float: left;">
+      <h2>BMI of children in the Hague
+      <span>
+      <span class="filter-count"></span>
+      selected out of
+      <span class="total-count"></span>
+      records |
+      <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+      </span>
+      </h2>
+      </div>
+<!--       <h3>Weight and Length Haagse children</h3>
+      <div class="control">
+        <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+      </div>
+      <div id='data-count'>
+        <span class='filter-count'></span> selected out of <span class='total-count'></span> records
+      </div> -->
+
       <div class='row'>
         <div class='span12' id='dc-bmi-bar-chart'>
           <h4>Children by BMI</h4>
@@ -136,6 +161,8 @@ d3.csv("data/data.csv", function (data) {
 
   var facts = crossfilter(data);  // Gets our 'facts' into crossfilter
 
+  var all = facts.groupAll();
+
   /******************************************************
   * Create the Dimensions                               *
   ******************************************************/
@@ -208,7 +235,7 @@ d3.csv("data/data.csv", function (data) {
                     )
         .colors(d3.scale
                   .quantize()
-                  .range(["#E2F2FF", "#C4E4FF", "#9ED2FF", "#81C5FF", "#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"])
+                  .range(['#d2e2f2','#bcd4ea','#a5c5e2','#8db7da','#75a9d2','#5a9bca'])
                 )
         .colorDomain([5, 20])
         .colorCalculator(function (d) { return d ? geoChart.colors()(d) : '#ccc'; })
@@ -268,8 +295,8 @@ d3.csv("data/data.csv", function (data) {
         .dimension(ageValue)
         .group(ageGroupAvg)
         .valueAccessor(function (p) { return p.value.avg; })
-        .centerBar(true)
-        .gap(5)
+        .centerBar(false)
+        // .gap(5)
         .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.age; })))
         .elasticY(true)
         .xAxis().tickFormat(function(v) {return v;}); 
@@ -282,7 +309,7 @@ d3.csv("data/data.csv", function (data) {
         .dimension(yearValue)
         .group(yearGroupAvg)
         .valueAccessor(function (p) { return p.value.avg; })
-        .centerBar(true)  
+        .centerBar(false)  
         .gap(10)
         .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.year_assessment; })))
         .elasticY(true)
@@ -307,12 +334,18 @@ d3.csv("data/data.csv", function (data) {
         .sortBy(function(d){ return d.gender; })
         .order(d3.ascending);
 
+      // count all the facts
+      dc.dataCount(".dc-data-count")
+      .dimension(facts)
+      .group(all);
+
     /****************************
     * Step6: Render the Charts  *
     ****************************/
           
       dc.renderAll();
 
+      $("#loading").hide();
 
       });
 
