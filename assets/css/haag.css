@@ -1,24 +1,25 @@
-#collage {
-	position: relative;
-	heigth: 450px
-}
-
 #explanation {
     position: absolute;
     top: 0;
     left: 0;
+    margin-left:auto;
+    margin-right:auto;
 }
 
 #dc-geo-chart {
     position: absolute;
     top: 0;
     left: 0;
+    margin-left:auto;
+    margin-right:auto;
 }
 
 #dc-bmi-bar-chart {
     position: absolute;
     top: 0;
     left: 0;
+    margin-left:auto;
+    margin-right:auto;
 }
 
 #explanation,
