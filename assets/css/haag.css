@@ -1,0 +1,27 @@
+#collage {
+	position: relative;
+	heigth: 450px
+}
+
+#explanation {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#dc-geo-chart {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#dc-bmi-bar-chart {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#explanation,
+#dc-geo-chart {
+    z-index: 10;
+}
