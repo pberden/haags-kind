@@ -14,6 +14,7 @@
 
   <link href='assets/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
   <link href='assets/css/dc.css' rel='stylesheet' type='text/css'>
+  <link href='assets/css/haag.css' rel='stylesheet' type='text/css'>
 
   <style type="text/css"></style>
 </head>
@@ -28,14 +29,14 @@
     <div class='span12'>
       <h3>Weight and Length Haagse children</h3>
       <div class='row'>
+        <div class='span12' id='dc-bmi-bar-chart'>
+          <h4>Children by BMI</h4>
+        </div>
         <div class='pie-graph span6' id='dc-bubble-chart'>
         <h4>Explanation</h4>
         </div>
         <div class='pie-graph span6' id='dc-geo-chart'>
         <h4>Map of The Hague</h4>
-        </div>
-        <div class='span12' id='dc-bmi-bar-chart'>
-          <h4>Children by BMI</h4>
         </div>
       </div>
     </div>
@@ -231,6 +232,7 @@ d3.csv("data/data.csv", function (data) {
         .group(bmiValueGroupCount) // the values on the y axis
       .transitionDuration(500)
         .centerBar(true)  
+      .brushOn(false)
       .gap(21) // bar width Keep increasing to get right then back off.
         .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.bmi; })))
       .elasticY(true)

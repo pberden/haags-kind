@@ -1,0 +1,9 @@
+#dc-bmi-bar-chart {
+    position: relative;
+    top: 450px;
+    margin-top: -200px;
+    z-index: -10;
+}
+#dc-geo-chart {
+	z-index: 10;
+}
