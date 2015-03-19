@@ -45,13 +45,6 @@
       </span>
       </h2>
       </div>
-<!--       <h3>Weight and Length Haagse children</h3>
-      <div class="control">
-        <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
-      </div>
-      <div id='data-count'>
-        <span class='filter-count'></span> selected out of <span class='total-count'></span> records
-      </div> -->
 
       <div class='row'>
         <div class='span12' id='dc-bmi-bar-chart'>
@@ -59,6 +52,8 @@
         </div>
         <div class='pie-graph span6' id='dc-bubble-chart'>
         <h4>Explanation</h4>
+        <p>The body mass index (<a href="http://en.wikipedia.org/wiki/Body_mass_index">BMI</a>) is a measure of relative size based on the mass and height of an individual. </p>
+        <p>Recent studies in Britain have indicated that females between the ages 12 and 16 have a higher BMI than males of the same age by 1.0&nbsp;kg/m<sup>2</sup> on average.</p>
         </div>
         <div class='pie-graph span6' id='dc-geo-chart'>
         <h4>Map of The Hague</h4>
@@ -121,6 +116,53 @@
 
 // load data from a csv file
 d3.csv("data/data.csv", function (data) {
+
+  var wijk_mapping = [{"WK_CODE":"51801","WK_NAAM":"Oostduinen"},
+                      {"WK_CODE":"51802","WK_NAAM":"Belgisch Park"},
+                      {"WK_CODE":"51803","WK_NAAM":"Westbroekpark en Duttendel"},
+                      {"WK_CODE":"51804","WK_NAAM":"Benoordenhout"},
+                      {"WK_CODE":"51805","WK_NAAM":"Archipelbuurt"},
+                      {"WK_CODE":"51806","WK_NAAM":"Van Stolkpark en Scheveningse Bosjes"},
+                      {"WK_CODE":"51807","WK_NAAM":"Scheveningen"},
+                      {"WK_CODE":"51808","WK_NAAM":"Duindorp"},
+                      {"WK_CODE":"51809","WK_NAAM":"Geuzen- en Statenkwartier"},
+                      {"WK_CODE":"51810","WK_NAAM":"Zorgvliet"},
+                      {"WK_CODE":"51811","WK_NAAM":"Duinoord"},
+                      {"WK_CODE":"51812","WK_NAAM":"Bomen- en Bloemenbuurt"},
+                      {"WK_CODE":"51813","WK_NAAM":"Vogelwijk"},
+                      {"WK_CODE":"51814","WK_NAAM":"Bohemen en Meer en Bos"},
+                      {"WK_CODE":"51815","WK_NAAM":"Kijkduin en Ockenburgh"},
+                      {"WK_CODE":"51816","WK_NAAM":"Kraayenstein en de Uithof"},
+                      {"WK_CODE":"51817","WK_NAAM":"Loosduinen"},
+                      {"WK_CODE":"51818","WK_NAAM":"Waldeck"},
+                      {"WK_CODE":"51819","WK_NAAM":"Vruchtenbuurt"},
+                      {"WK_CODE":"51820","WK_NAAM":"Valkenboskwartier"},
+                      {"WK_CODE":"51821","WK_NAAM":"Regentessekwartier"},
+                      {"WK_CODE":"51822","WK_NAAM":"Zeeheldenkwartier"},
+                      {"WK_CODE":"51823","WK_NAAM":"Willemspark"},
+                      {"WK_CODE":"51824","WK_NAAM":"Haagse Bos"},
+                      {"WK_CODE":"51825","WK_NAAM":"Mariahoeve en Marlot"},
+                      {"WK_CODE":"51826","WK_NAAM":"Bezuidenhout"},
+                      {"WK_CODE":"51827","WK_NAAM":"Stationsbuurt"},
+                      {"WK_CODE":"51828","WK_NAAM":"Centrum"},
+                      {"WK_CODE":"51829","WK_NAAM":"Schildersbuurt"},
+                      {"WK_CODE":"51830","WK_NAAM":"Transvaalkwartier"},
+                      {"WK_CODE":"51831","WK_NAAM":"Rustenburg en Oostbroek"},
+                      {"WK_CODE":"51832","WK_NAAM":"Leyenburg"},
+                      {"WK_CODE":"51833","WK_NAAM":"Bouwlust en Vrederust"},
+                      {"WK_CODE":"51834","WK_NAAM":"Morgenstond"},
+                      {"WK_CODE":"51835","WK_NAAM":"Zuiderpark"},
+                      {"WK_CODE":"51836","WK_NAAM":"Moerwijk"},
+                      {"WK_CODE":"51837","WK_NAAM":"Groente- en Fruitmarkt"},
+                      {"WK_CODE":"51838","WK_NAAM":"Laakkwartier en Spoorwijk"},
+                      {"WK_CODE":"51839","WK_NAAM":"Binckhorst"},
+                      {"WK_CODE":"51840","WK_NAAM":"Wateringse Veld"},
+                      {"WK_CODE":"51841","WK_NAAM":"Hoornwijk"},
+                      {"WK_CODE":"51842","WK_NAAM":"Ypenburg"},
+                      {"WK_CODE":"51843","WK_NAAM":"Forepark"},
+                      {"WK_CODE":"51844","WK_NAAM":"Leidschenveen"}];
+
+  var m = d3.map(wijk_mapping, function(d) { return d.WK_CODE; });
   
   data.forEach(function(d) {
     d.age = +d.age;
@@ -128,6 +170,7 @@ d3.csv("data/data.csv", function (data) {
     d.height = +d.height;
     d.weight = +d.weight;
     d.bmi = d3.round(d.weight/((d.height*d.height)/10000),1);
+    d.wijk = m.get(d.cbs_wijkcode)['WK_NAAM'];
   });
 
   //Custom reduce functions for calculating average values
@@ -135,7 +178,7 @@ d3.csv("data/data.csv", function (data) {
     return function(p,v) {
       ++p.count
       p.sum += v[attr];
-      p.avg = d3.round((p.sum / p.count), 2);
+      p.avg = p.count ? d3.round((p.sum / p.count), 2) : 0;
       return p;
     };
   }
@@ -143,7 +186,7 @@ d3.csv("data/data.csv", function (data) {
     return function(p,v) {
       --p.count
       p.sum -= v[attr];
-      p.avg = d3.round((p.sum / p.count), 2);
+      p.avg = p.count ? d3.round((p.sum / p.count), 2) : 0;
       return p;
     };
   }
@@ -237,7 +280,7 @@ d3.csv("data/data.csv", function (data) {
                   .quantize()
                   .range(['#d2e2f2','#bcd4ea','#a5c5e2','#8db7da','#75a9d2','#5a9bca'])
                 )
-        .colorDomain([5, 20])
+        .colorDomain([14.1, 20.4])
         .colorCalculator(function (d) { return d ? geoChart.colors()(d) : '#ccc'; })
         .overlayGeoJson(districts.features, "district", function (d) {
             return d.properties.WK_CODE.substr(3,6);
@@ -246,7 +289,7 @@ d3.csv("data/data.csv", function (data) {
         //     return "District: " + d.key;
         .title(function (p) {
           return [
-              p.key,
+              m.get(p.key)['WK_NAAM'],
               'Average BMI: ' + p.value
           ].join('\n');
         });
@@ -328,7 +371,7 @@ d3.csv("data/data.csv", function (data) {
           function(d) { return d.height; },
           function(d) { return d.weight; },
           function(d) { return d.bmi; },
-          function(d) { return d.cbs_wijkcode; },      
+          function(d) { return d.wijk; },      
           function(d) { return d.year_assessment; }
         ])
         .sortBy(function(d){ return d.gender; })
