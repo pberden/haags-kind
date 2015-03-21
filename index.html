@@ -51,6 +51,7 @@
         <div class='span6' id='explanation'>
         <p>The visualisations below use <a href="http://d3js.org">D3</a>, <a href="http://nickqizhu.github.io/dc.js/">dc.js</a> and <a href="http://square.github.io/crossfilter/">crossfilter</a> to represent height and weight measurements of children in <a href="http://en.wikipedia.org/wiki/The_Hague">The Hague</a>, a city in the Netherlands. The body mass index (<a href="http://en.wikipedia.org/wiki/Body_mass_index">BMI</a>) is a measure of relative size based on the mass and height of an individual. All charts display the average BMI value, except for the histogram which displays the counts of children per BMI value. Click and drag and watch the graphs move.</p>
         <p>Recent studies in Britain have indicated that females between the ages 12 and 16 have a higher BMI than males of the same age by 1.0&nbsp;kg/m<sup>2</sup> on average. <a href="javascript:filterAgeEth(13,16,['Maroccan'])">This</a> difference shows particulary well for Maroccan children older than 13 years were the average BMI is 20.77 for boys vs 22.05 for girls.</p>
+        <h5 id = "total">Average BMI for selected filters: </h5>
         </div>
         <div class='pie-graph span6' id='dc-geo-chart'>
         <h4>Map of The Hague</h4>
@@ -112,7 +113,7 @@
 <script>
 
 // wider scope for these charts so that we can reference them from the reset and filter utility functions
-var geoChart, bmiBarChart, genderChart, ethnicityChart, ageChart, yearChart, dataTable;
+var geoChart, numberDisplay, bmiBarChart, genderChart, ethnicityChart, ageChart, yearChart, dataTable;
 
 // load data from a csv file
 d3.csv("data/data.csv", function (data) {
@@ -195,6 +196,7 @@ d3.csv("data/data.csv", function (data) {
   }
 
   geoChart = dc.geoChoroplethChart("#dc-geo-chart");
+  numberDisplay = dc.numberDisplay("#total");
   bmiBarChart = dc.barChart("#dc-bmi-bar-chart");
   genderChart = dc.rowChart("#dc-gender-chart");
   ethnicityChart = dc.rowChart("#dc-ethnicity-chart");
@@ -221,6 +223,11 @@ d3.csv("data/data.csv", function (data) {
     .reduceSum(function(d) { return d.bmi; });  // sums the measurements per BMI (rounded to 1 decimal)
   var bmiValueGroupCount = bmiValue.group()
     .reduceCount(function(d) { return d.bmi; }) // counts the number of the measurements by BMI
+
+  // for average
+  var averageValue = facts.dimension(function (d) {return d; }) 
+  var groupAvg = averageValue.group()
+    .reduce(reduceAddAvg('bmi'), reduceRemoveAvg('bmi'), reduceInitAvg);
 
   // for gender
   var genderValue = facts.dimension(function (d) {return d.gender; }) 
@@ -302,6 +309,11 @@ d3.csv("data/data.csv", function (data) {
         .x(d3.scale.linear().domain(d3.extent(data, function(d) { return d.bmi; })))
       .elasticY(true)
       .xAxis().tickFormat(function(v) {return v;}); 
+
+      // Average number display
+      numberDisplay.group(groupAvg)
+        .valueAccessor(function (p) { return p.value.avg; })
+        .formatNumber(d3.format(",2f"));
 
       var rowMargins = {top: 5, left: 30, right: 20, bottom: 40}
 
@@ -399,6 +411,15 @@ function filterAgeEth(low, high, ethnicity) {
   }
   dc.redrawAll();
 }
+
+//Analytics
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-41242925-1', 'bourlo.net');
+ga('send', 'pageview');
   
 </script>
     
