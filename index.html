@@ -319,7 +319,7 @@ d3.csv("data/data.csv", function (data) {
         .valueAccessor(function (p) { return p.value.avg; })
         .formatNumber(d3.format(",2f"));
 
-      var rowMargins = {top: 5, left: 30, right: 20, bottom: 40}
+      var rowMargins = {top: 5, left: 20, right: 20, bottom: 40}
 
       // Gender Row Chart
       genderChart.width(240)
@@ -372,7 +372,7 @@ d3.csv("data/data.csv", function (data) {
       // Table with the data
       dataTable.width(960).height(800)
         .dimension(genderDimension)
-      .group(function(d) { return "List of all data corresponding to the filters"
+      .group(function(d) { return "List of data corresponding to the filters"
        })
       .size(10)             // number of rows to return
         .columns([
@@ -399,7 +399,7 @@ d3.csv("data/data.csv", function (data) {
           
       dc.renderAll();
 
-      // $("#loading").hide();
+      $("#loading").hide();
 
       });
 
